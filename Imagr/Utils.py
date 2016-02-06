@@ -26,6 +26,7 @@ import xml.sax.saxutils
 import logging
 import urlparse
 import socket
+import re
 
 from gurl import Gurl
 
@@ -324,7 +325,28 @@ def getPlistData(data):
         pass
 
 def getServerURL():
-    return getPlistData('serverurl')
+    # Get serial number and machine model
+    hardware_info = get_hardware_info()
+    SERIAL = hardware_info.get('serial_number', 'UNKNOWN')
+    machine_model = hardware_info.get('machine_model', 'UNKNOWN')
+    
+    # Get IP address
+    ip_address = socket.gethostbyname(socket.getfqdn())
+    
+    # Get MAC address
+    cmd = "ping -c1 {} && arp -n {}".format(ip_address, ip_address)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    (out, err) = proc.communicate()
+    mac_address = re.findall(r'([\dA-Fa-f]{2}(?:[-:][\dA-Fa-f]{2}){5})', out)[0]
+    
+    url = urllib.urlencode({
+        "serial": SERIAL,
+        "machine_model": machine_model,
+        "ip_address": ip_address,
+        "mac_address": mac_address
+    })
+    
+    return "{}?{}".format(getPlistData('serverurl'), url)
 
 def getReportURL():
     report_url = getPlistData('reporturl')
