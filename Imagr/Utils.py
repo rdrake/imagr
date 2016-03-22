@@ -334,7 +334,7 @@ def getServerURL():
     ip_address = socket.gethostbyname(socket.getfqdn())
     
     # Get MAC address
-    cmd = "ping -c1 {} && arp -n {}".format(ip_address, ip_address)
+    cmd = "/sbin/ping -c1 {} && /usr/sbin/arp -n {}".format(ip_address, ip_address)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     (out, err) = proc.communicate()
     mac_address = re.findall(r'([\dA-Fa-f]{2}(?:[-:][\dA-Fa-f]{2}){5})', out)[0]
